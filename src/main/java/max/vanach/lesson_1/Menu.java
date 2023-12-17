@@ -21,35 +21,27 @@ public class Menu {
     }
 
     public void show() {
-        List<Integer> allowed = new ArrayList<>();
-
         System.out.println("\n\n========== " + title + " ==========");
-        for (MenuOption option : options) {
-            System.out.println(option.value + ". " + option.label);
-            allowed.add(option.value);
+        for (int i=0; i<options.size(); i++) {
+            MenuOption option = options.get(i);
+            System.out.println(i + ". " + option.label);
         }
         System.out.println("==========================");
         System.out.println("\nOption: ");
 
         int choice;
         while (true) {
-            choice = Integer.parseInt(scan.nextLine());
-            if (allowed.contains(choice)) {
-                break;
-            }
+            try {
+                choice = Integer.parseInt(scan.nextLine());
+                
+                if (choice > 0 && choice <= options.size()) {
+                    options.get(choice).process.run();
+                    break;
+                }   
+            } catch(NumberFormatException e) { }
+                
+            
             System.out.println("Wrong option!");
         }
-
-        for (MenuOption option : options) {
-            if (option.value == choice) {
-                option.process.run();
-                break;
-            }
-        }
-    }
-
-    private void get_allowed_options() {
-
-
     }
 }

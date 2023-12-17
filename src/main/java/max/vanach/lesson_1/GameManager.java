@@ -113,21 +113,21 @@ public final class GameManager {
 
     private void InitializeMenus() {
         menu = new Menu("MAIN MENU");
-        menu.add_option(new MenuOption("Singleplayer", 1, setSinglePlayer));
-        menu.add_option(new MenuOption("Reversed Singleplayer", 2, setReversedSinglePlayer));
-        menu.add_option(new MenuOption("Multiplayer", 3, setMultiPlayer));
-        menu.add_option(new MenuOption("Exit", 0, exit));
+        menu.add_option(new MenuOption("Singleplayer", setSinglePlayer));
+        menu.add_option(new MenuOption("Reversed Singleplayer", setReversedSinglePlayer));
+        menu.add_option(new MenuOption("Multiplayer", setMultiPlayer));
+        menu.add_option(new MenuOption("Exit", exit));
 
         gameMenu = new Menu("GAME MENU");
-        gameMenu.add_option(new MenuOption("Play", 1, goToDifficultyMenu));
-        gameMenu.add_option(new MenuOption("Ranking", 2, goToRanking));
-        gameMenu.add_option(new MenuOption("Back", 0, goToMainMenu));
+        gameMenu.add_option(new MenuOption("Play", goToDifficultyMenu));
+        gameMenu.add_option(new MenuOption("Ranking", goToRanking));
+        gameMenu.add_option(new MenuOption("Back", goToMainMenu));
 
         dificultyMenu = new Menu("DIFFICULTY");
-        dificultyMenu.add_option(new MenuOption("EASY", 1, playEasy));
-        dificultyMenu.add_option(new MenuOption("MEDIUM", 2, playMedium));
-        dificultyMenu.add_option(new MenuOption("HARD", 3, playHard));
-        dificultyMenu.add_option(new MenuOption("Back", 0, goToGameMenu));
+        dificultyMenu.add_option(new MenuOption("EASY", playEasy));
+        dificultyMenu.add_option(new MenuOption("MEDIUM", playMedium));
+        dificultyMenu.add_option(new MenuOption("HARD", playHard));
+        dificultyMenu.add_option(new MenuOption("Back", goToGameMenu));
     }
 
     private static void SetGameMode(GameMode mode) {
