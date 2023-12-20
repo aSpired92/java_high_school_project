@@ -1,7 +1,6 @@
 package max.vanach.lesson_1;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -20,27 +19,34 @@ public class Menu {
         options.add(option);
     }
 
+    /**
+     * The function displays a menu with options and prompts the user to choose an option, then
+     * executes the corresponding action.
+     */
     public void show() {
+        // Display menu
+        Main.ClearScreen();
         System.out.println("\n\n========== " + title + " ==========");
-        for (int i=0; i<options.size(); i++) {
+        for (int i = 0; i < options.size(); i++) {
             MenuOption option = options.get(i);
-            System.out.println(i + ". " + option.label);
+            System.out.println(i+1 + ". " + option.label);
         }
         System.out.println("==========================");
-        System.out.println("\nOption: ");
 
+        // Take user's input
         int choice;
         while (true) {
-            try {
-                choice = Integer.parseInt(scan.nextLine());
-                
-                if (choice > 0 && choice <= options.size()) {
-                    options.get(choice).process.run();
+            System.out.println("\nOption: ");
+            String strChoice = scan.nextLine();
+            if (Main.IsNumeric(strChoice)) {
+                choice = Integer.parseInt(strChoice);
+
+                if (choice > 0 || choice <= options.size()) {
+                    options.get(choice - 1).process.run();
                     break;
-                }   
-            } catch(NumberFormatException e) { }
-                
-            
+                }
+            }
+
             System.out.println("Wrong option!");
         }
     }

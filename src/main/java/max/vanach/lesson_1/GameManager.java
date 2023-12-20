@@ -1,7 +1,8 @@
 package max.vanach.lesson_1;
 
 import java.util.Scanner;
-
+import java.util.List;
+import java.util.LinkedList;
 
 //        int tries = 0;
 //        int random = new Random().nextInt(max - min) + min;
@@ -35,20 +36,56 @@ import java.util.Scanner;
 //            }
 //        }
 
-public final class GameManager {
-    private static volatile GameManager instance = null;
+enum GameType {
 
-    private GameManager() {
-        if(instance != null) {
-            throw new RuntimeException("Not allowed. Please use getInstance() method");
-        }
+    SINGLEPLAYER("SINGLEPLAYER"),
+    MULTIPLAYER("MULTIPLAYER");
+
+    private final String name;
+
+    GameType(String name) {
+        this.name = name;
     }
 
-    public static GameManager getInstance() {
+    @Override
+    public String toString() {
+        return name;
+    }
+}
 
-        if(instance == null) {
-            synchronized(GameManager.class) {
-                if(instance == null) {
+enum GameMode {
+
+    PLAYER_VS_PC("PLAYER VS PC"),
+    PC_VS_PLAYER("PC VS PLAYER"),
+    PLAYER_VS_PC_MIXED("PLAYER VS PC MIXED"),
+    PLAYER_VS_PLAYER("PLAYER VS PLAYER"),
+    PLAYERS_VS_PC("PLAYERS VS PC");
+
+    private final String name;
+
+    GameMode(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+}
+
+enum Difficulty {
+    EASY,
+    MEDIUM,
+    HARD;
+}
+
+public final class GameManager {
+    private static GameManager instance = null;
+
+    public static GameManager getInstance() {
+        if (instance == null) {
+            synchronized (GameManager.class) {
+                if (instance == null) {
                     instance = new GameManager();
                 }
             }
@@ -57,49 +94,71 @@ public final class GameManager {
         return instance;
     }
 
-    public void run(){
+    private final int MAX_PLAYERS = 8;
+
+    private final Scanner scan = new Scanner(System.in);
+    private List<Player> players = new LinkedList<Player>();
+
+    private static GameType gameType;
+    private static GameMode gameMode;
+    private static Difficulty difficulty;
+
+    private static Menu menu;
+    private static Menu gameSingleplayerMenu;
+    private static Menu dificultyMenu;
+    private static Menu gameMultiplayerMenu;
+    private static Menu multiplayerSettingsMenu;
+
+    private GameManager() {
+        if (instance != null) {
+            throw new RuntimeException("Not allowed. Please use getInstance() method");
+        }
+
         InitializeMenus();
-        AskForPlayer();
+    }
+
+    public void run() {
+        CreateNewPlayer();
+
+        while (true) {
+            System.out.println("Create more players for multiplayer game puposes? (Y/N)");
+            System.out.print(": ");
+
+            String answear = scan.nextLine().toLowerCase();
+            if (!answear.isEmpty() && (answear.equals("y") || answear.equals("n"))) {
+                if (answear.equals("y")) {
+                    while (true) {
+                        System.out.println("How many players would you like to add? (Maximum is " + MAX_PLAYERS + ")");
+                        System.out.print(": ");
+
+                        String numberString = scan.nextLine().toLowerCase();
+                        if (!numberString.isEmpty() && Main.IsNumeric(numberString)) {
+                            int number = Integer.parseInt(numberString);
+
+                            for (int i=0; i<number; i++) {
+                                CreateNewPlayer();
+                            }
+
+                            break;
+                        }
+                    }
+                }
+
+                break;
+            }
+        }
+
         menu.show();
     }
 
-    private enum GameMode {
-
-        SINGLEPLAYER("SINGLEPLAYER"),
-        REVERSED("REVERSED SINGLEPLAYER"),
-        MULTIPLAYER("MULTIPLAYER");
-
-        private final String name;
-
-        GameMode(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
-
-    private enum Difficulty {
-
-        EASY,
-        MEDIUM,
-        HARD;
-    }
-
-
-    private final Scanner scan = new Scanner(System.in);
-    private Player player;
-    private static Menu menu;
-    private static GameMode gameMode;
-    private static Difficulty difficulty;
-    private static Menu gameMenu;
-    private static Menu dificultyMenu;
-
-    private void AskForPlayer() {
+    private void CreateNewPlayer() {
         String inputNickname;
         while (true) {
+            Main.ClearScreen();
+            if (players.size() > 0) {
+                System.out.println("Set nickname for Player" + (players.size() + 1) + ".");
+            }
+
             System.out.print("Nickname: ");
             inputNickname = scan.nextLine();
             if (!inputNickname.isEmpty()) {
@@ -108,31 +167,36 @@ public final class GameManager {
             System.out.println("Nickname cannot be empty!");
         }
 
-        player = new Player(inputNickname);
+        players.add(new Player(inputNickname));
     }
 
     private void InitializeMenus() {
         menu = new Menu("MAIN MENU");
         menu.add_option(new MenuOption("Singleplayer", setSinglePlayer));
-        menu.add_option(new MenuOption("Reversed Singleplayer", setReversedSinglePlayer));
         menu.add_option(new MenuOption("Multiplayer", setMultiPlayer));
         menu.add_option(new MenuOption("Exit", exit));
 
-        gameMenu = new Menu("GAME MENU");
-        gameMenu.add_option(new MenuOption("Play", goToDifficultyMenu));
-        gameMenu.add_option(new MenuOption("Ranking", goToRanking));
-        gameMenu.add_option(new MenuOption("Back", goToMainMenu));
+        gameSingleplayerMenu = new Menu("SINGLEPLAYER");
+        gameSingleplayerMenu.add_option(new MenuOption("Play", goToDifficultyMenu));
+        gameSingleplayerMenu.add_option(new MenuOption("Ranking", goToRanking));
+        gameSingleplayerMenu.add_option(new MenuOption("Back", goToMainMenu));
 
         dificultyMenu = new Menu("DIFFICULTY");
         dificultyMenu.add_option(new MenuOption("EASY", playEasy));
         dificultyMenu.add_option(new MenuOption("MEDIUM", playMedium));
         dificultyMenu.add_option(new MenuOption("HARD", playHard));
         dificultyMenu.add_option(new MenuOption("Back", goToGameMenu));
-    }
 
-    private static void SetGameMode(GameMode mode) {
-        gameMode = mode;
-        gameMenu.title = mode.toString();
+        gameMultiplayerMenu = new Menu("MULTIPLAYER");
+        gameMultiplayerMenu.add_option(new MenuOption("Play", goToDifficultyMenu));
+        gameMultiplayerMenu.add_option(new MenuOption("Ranking", goToRanking));
+        gameMultiplayerMenu.add_option(new MenuOption("Settings", goToMultiplayerSettings));
+        gameMultiplayerMenu.add_option(new MenuOption("Back", goToMainMenu));
+
+        multiplayerSettingsMenu = new Menu("MULTIPLAYER SETTINGS");
+        multiplayerSettingsMenu.add_option(new MenuOption("Change number of players", goToDifficultyMenu));
+        multiplayerSettingsMenu.add_option(new MenuOption("Change name of player", goToDifficultyMenu));
+        multiplayerSettingsMenu.add_option(new MenuOption("Back", goToGameMenu));
     }
 
     private static void Play() {
@@ -143,23 +207,26 @@ public final class GameManager {
 
     }
 
-    private static final Thread goToRanking = new Thread(() -> {
-        ShowRanking();
-    });
+    private static void ChangeNameOfPlayer() {
+
+    }
+
+    private static void NumberOfPlayers() {
+
+    }
 
     private static final Thread setSinglePlayer = new Thread(() -> {
-        SetGameMode(GameMode.SINGLEPLAYER);
-        gameMenu.show();
+        gameType = GameType.SINGLEPLAYER;
+        gameSingleplayerMenu.show();
     });
 
     private static final Thread setMultiPlayer = new Thread(() -> {
-        SetGameMode(GameMode.MULTIPLAYER);
-        gameMenu.show();
+        gameType = GameType.MULTIPLAYER;
+        gameMultiplayerMenu.show();
     });
 
-    private static final Thread setReversedSinglePlayer = new Thread(() -> {
-        SetGameMode(GameMode.REVERSED);
-        gameMenu.show();
+    private static final Thread goToDifficultyMenu = new Thread(() -> {
+        dificultyMenu.show();
     });
 
     private static final Thread playEasy = new Thread(() -> {
@@ -177,21 +244,36 @@ public final class GameManager {
         Play();
     });
 
+    private static final Thread goToMultiplayerSettings = new Thread(() -> {
+        multiplayerSettingsMenu.show();
+    });
+
+    private static final Thread changePlayerName = new Thread(() -> {
+        ChangeNameOfPlayer();
+    });
+
+    private static final Thread changeNumberOfPlayers = new Thread(() -> {
+        NumberOfPlayers();
+    });
+
+    private static final Thread goToRanking = new Thread(() -> {
+        ShowRanking();
+    });
+
+    private static final Thread goToGameMenu = new Thread(() -> {
+        if (gameType == GameType.SINGLEPLAYER) {
+            gameSingleplayerMenu.show();
+        } else if (gameType == GameType.SINGLEPLAYER) {
+            gameMultiplayerMenu.show();
+        }
+    });
+
     private static final Thread goToMainMenu = new Thread(() -> {
         menu.show();
     });
 
-    private static final Thread goToGameMenu = new Thread(() -> {
-        gameMenu.show();
-    });
-
-    private static final Thread goToDifficultyMenu = new Thread(() -> {
-        dificultyMenu.show();
-    });
-
     private static final Thread exit = new Thread(() -> {
-        System.out.println("Bye :D");
+        System.exit(0);
     });
-
 
 }
