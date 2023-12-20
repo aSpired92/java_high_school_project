@@ -8,7 +8,14 @@ public class Computer extends Player {
     }
 
     @Override
-    public void SetNumber(int min, int max) {
+    /**
+     * Set pseudorandom number for computer.
+     * 
+     * @param min The minimum value of the range from which the computer can
+     *            'choose' a number.
+     * @param max The maximum number in the range.
+     */
+    public void setNumber(int min, int max) {
         Random rnd = new Random();
         number = rnd.nextInt(min, max + 1);
     }

@@ -12,7 +12,7 @@ public class Lobby {
     // This variable is used to store the difficulty(guessing range) of the game.
     private Difficulty difficulty;
 
-    // Prevent from using default contructor
+    // Prevent from using default constructor
     private Lobby() {
     }
 
@@ -23,21 +23,19 @@ public class Lobby {
         this.guessingPlayers = new ArrayList<>(guessingPlayers);
     }
 
-    public void Play() {
-        
+    public void play() {
+
     }
 
     /**
-     * The function GetGuessingRange() returns an array representing the range of
-     * numbers to guess from
+     * Returns an array representing the range of numbers to guess from
      * based on the difficulty level.
      * 
      * @return An array of two integers representing the guessing range. The first
-     *         element of the array
-     *         is the lower bound of the range, and the second element is the upper
-     *         bound of the range.
+     *         element of the array is the lower bound of the range, and the second
+     *         element is the upper bound of the range.
      */
-    private int[] GetGuessingRange() {
+    private int[] getGuessingRange() {
         switch (difficulty) {
             case EASY:
                 return new int[] { 0, 100 };

@@ -2,13 +2,12 @@ package max.vanach.lesson_1;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
+
+import max.vanach.lesson_1.utils.PlayerInput;
 
 public class Menu {
     public List<MenuOption> options;
     public String title;
-
-    private final Scanner scan = new Scanner(System.in);
 
     public Menu(String title) {
         options = new ArrayList<>();
@@ -20,34 +19,19 @@ public class Menu {
     }
 
     /**
-     * The function displays a menu with options and prompts the user to choose an option, then
-     * executes the corresponding action.
+     * The function displays a menu with options and prompts the user to choose an
+     * option, then executes the corresponding action.
      */
     public void show() {
-        // Display menu
-        Main.ClearScreen();
-        System.out.println("\n\n========== " + title + " ==========");
+        String menuString = "========== " + title + " ==========\n";
         for (int i = 0; i < options.size(); i++) {
             MenuOption option = options.get(i);
-            System.out.println(i+1 + ". " + option.label);
+            menuString += (i + 1) + ". " + option.label + "\n";
         }
-        System.out.println("==========================");
+        menuString += "==========================\n\n";
 
-        // Take user's input
-        int choice;
-        while (true) {
-            System.out.println("\nOption: ");
-            String strChoice = scan.nextLine();
-            if (Main.IsNumeric(strChoice)) {
-                choice = Integer.parseInt(strChoice);
+        int choice = PlayerInput.getInputInt(menuString, "Option: ", "Wrong option!", 1, options.size(), false, false);
 
-                if (choice > 0 || choice <= options.size()) {
-                    options.get(choice - 1).process.run();
-                    break;
-                }
-            }
-
-            System.out.println("Wrong option!");
-        }
+        options.get(choice - 1).process.run();
     }
 }

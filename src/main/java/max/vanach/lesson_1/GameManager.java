@@ -1,40 +1,10 @@
 package max.vanach.lesson_1;
 
-import java.util.Scanner;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.regex.Pattern;
 
-//        int tries = 0;
-//        int random = new Random().nextInt(max - min) + min;
-//
-//        System.out.println(random);
-//        System.out.println("I'm thinking of a certain number in the range of " + min + " to " + max + ". What number is it? ");
-//
-//        while (true) {
-//
-////            Answer validation
-//            String answer = "";
-//            while (true) {
-//                answer = scan.nextLine();
-//                if (isNumeric(answer)) {
-//                    break;
-//                }
-//                System.out.println("The answer must be a number between 0 and 100");
-//            }
-//            int parsedAnswer = Integer.parseInt(answer);
-//            tries++;
-//
-//            if (parsedAnswer > max || parsedAnswer < min) {
-//                System.out.println("Number is out of range! (" + min + "-" + max + ") Try again...");
-//            } else if (parsedAnswer > random) {
-//                System.out.println("Too high! Try again...");
-//            } else if (parsedAnswer < random) {
-//                System.out.println("Too low! Try again...");
-//            } else {
-//                System.out.println("Correct! Congratulations!");
-//                return tries;
-//            }
-//        }
+import max.vanach.lesson_1.utils.PlayerInput;
 
 enum GameType {
 
@@ -54,10 +24,11 @@ enum GameType {
 }
 
 enum GameMode {
-
+    // Singleplayer modes
     PLAYER_VS_PC("PLAYER VS PC"),
     PC_VS_PLAYER("PC VS PLAYER"),
     PLAYER_VS_PC_MIXED("PLAYER VS PC MIXED"),
+    // Multiplayer modes
     PLAYER_VS_PLAYER("PLAYER VS PLAYER"),
     PLAYERS_VS_PC("PLAYERS VS PC");
 
@@ -96,7 +67,6 @@ public final class GameManager {
 
     private final int MAX_PLAYERS = 8;
 
-    private final Scanner scan = new Scanner(System.in);
     private List<Player> players = new LinkedList<Player>();
 
     private static GameType gameType;
@@ -114,63 +84,60 @@ public final class GameManager {
             throw new RuntimeException("Not allowed. Please use getInstance() method");
         }
 
-        InitializeMenus();
+        initializeMenus();
     }
 
     public void run() {
-        CreateNewPlayer();
+        createNewPlayer();
 
-        while (true) {
-            System.out.println("Create more players for multiplayer game puposes? (Y/N)");
-            System.out.print(": ");
+        Pattern p = Pattern.compile("[yn]", Pattern.CASE_INSENSITIVE);
+        String answear = PlayerInput
+                .getInputString("Create more players for multiplayer game puposes? (Y/N)", ": ", "(Y)es or (N)o", p)
+                .toLowerCase();
 
-            String answear = scan.nextLine().toLowerCase();
-            if (!answear.isEmpty() && (answear.equals("y") || answear.equals("n"))) {
-                if (answear.equals("y")) {
-                    while (true) {
-                        System.out.println("How many players would you like to add? (Maximum is " + MAX_PLAYERS + ")");
-                        System.out.print(": ");
-
-                        String numberString = scan.nextLine().toLowerCase();
-                        if (!numberString.isEmpty() && Main.IsNumeric(numberString)) {
-                            int number = Integer.parseInt(numberString);
-
-                            for (int i=0; i<number; i++) {
-                                CreateNewPlayer();
-                            }
-
-                            break;
-                        }
-                    }
-                }
-
-                break;
-            }
+        if (answear.equals("y")) {
+            createMultiplayerPlayers();
         }
 
         menu.show();
     }
 
-    private void CreateNewPlayer() {
-        String inputNickname;
-        while (true) {
-            Main.ClearScreen();
-            if (players.size() > 0) {
-                System.out.println("Set nickname for Player" + (players.size() + 1) + ".");
-            }
+    /**
+     * The function creates a new player by prompting for a nickname and adding it to the list of
+     * players.
+     */
+    private void createNewPlayer() {
+        String title = "";
+        String prompt = "Nickname: ";
 
-            System.out.print("Nickname: ");
-            inputNickname = scan.nextLine();
-            if (!inputNickname.isEmpty()) {
-                break;
-            }
-            System.out.println("Nickname cannot be empty!");
+        if (players.size() > 0) {
+            title = "Set nickname for Player" + (players.size() + 1) + ".";
+            prompt = ": ";
         }
+
+        String inputNickname = PlayerInput.getInputString(title, prompt, "Nickname can't be empty!", null);
 
         players.add(new Player(inputNickname));
     }
 
-    private void InitializeMenus() {
+    /**
+     * The function creates a specified number of multiplayer players by calling the {@code createNewPlayer()}
+     * function.
+     */
+    private void createMultiplayerPlayers() {
+        int numberOfPlayers = PlayerInput
+                .getInputInt("How many players would you like to add?", ": ", "Wrong number!",
+                        1, MAX_PLAYERS, false, true);
+
+        for (int i = 0; i < numberOfPlayers; i++) {
+            createNewPlayer();
+        }
+    }
+
+    /**
+     * The function initializes menus and their options for a game menu system.
+     */
+    private void initializeMenus() {
         menu = new Menu("MAIN MENU");
         menu.add_option(new MenuOption("Singleplayer", setSinglePlayer));
         menu.add_option(new MenuOption("Multiplayer", setMultiPlayer));
@@ -199,19 +166,19 @@ public final class GameManager {
         multiplayerSettingsMenu.add_option(new MenuOption("Back", goToGameMenu));
     }
 
-    private static void Play() {
+    private static void play() {
 
     }
 
-    private static void ShowRanking() {
+    private static void showRanking() {
 
     }
 
-    private static void ChangeNameOfPlayer() {
+    private static void changeNameOfPlayer() {
 
     }
 
-    private static void NumberOfPlayers() {
+    private static void numberOfPlayers() {
 
     }
 
@@ -231,17 +198,17 @@ public final class GameManager {
 
     private static final Thread playEasy = new Thread(() -> {
         difficulty = Difficulty.EASY;
-        Play();
+        play();
     });
 
     private static final Thread playMedium = new Thread(() -> {
         difficulty = Difficulty.MEDIUM;
-        Play();
+        play();
     });
 
     private static final Thread playHard = new Thread(() -> {
         difficulty = Difficulty.HARD;
-        Play();
+        play();
     });
 
     private static final Thread goToMultiplayerSettings = new Thread(() -> {
@@ -249,15 +216,15 @@ public final class GameManager {
     });
 
     private static final Thread changePlayerName = new Thread(() -> {
-        ChangeNameOfPlayer();
+        changeNameOfPlayer();
     });
 
     private static final Thread changeNumberOfPlayers = new Thread(() -> {
-        NumberOfPlayers();
+        numberOfPlayers();
     });
 
     private static final Thread goToRanking = new Thread(() -> {
-        ShowRanking();
+        showRanking();
     });
 
     private static final Thread goToGameMenu = new Thread(() -> {
