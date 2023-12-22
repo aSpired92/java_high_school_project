@@ -1,13 +1,13 @@
 package max.vanach.lesson_1.utils;
 
+import java.io.Console;
 import java.io.IOException;
-import java.util.Scanner;
-
+import java.util.logging.ConsoleHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PlayerInput {
-    private final static Scanner scan = new Scanner(System.in);
+    private final static Console console = System.console();
 
     /**
      * Takes user input for an integer within a specified range and displays error
@@ -28,34 +28,21 @@ public class PlayerInput {
      * 
      * @return Valid user's input.
      */
-    public static int getInputInt(String title, String inputPrompt, String wrongInputMessage, int min, int max,
-            boolean showMin, boolean showMax) {
+    public static int getInputInt(String title, String inputPrompt, String wrongInputMessage, int min, int max, boolean hideInput) {
         int result = 0;
 
         clearScreen();
 
         if (title != null && !title.isEmpty()) {
-            System.out.print(title);
-
-            if (showMin || showMax) {
-                if (showMin && !showMax) {
-                    System.out.println(" (Minimum " + min + ")");
-                } else if (!showMin && showMax) {
-                    System.out.println(" (Maximum " + max + ")");
-                } else if (showMin && showMax) {
-                    System.out.println(" (" + min + " - " + max + ")");
-                } else {
-                    System.out.println();
-                }
-            }
+            System.out.println(title);
         }
 
         while (true) {
             if (inputPrompt != null && !inputPrompt.isEmpty()) {
                 System.out.print(inputPrompt);
             }
-
-            String numberString = scan.nextLine();
+            
+            String numberString = ( hideInput ? new String(console.readPassword()) : console.readLine());
             if (Utilities.isNumeric(numberString)) {
                 result = Integer.parseInt(numberString);
 
@@ -87,7 +74,7 @@ public class PlayerInput {
      *                          be considered valid.
      * @return The method is returning a String value.
      */
-    public static String getInputString(String title, String inputPrompt, String wrongInputMessage, Pattern pattern) {
+    public static String getInputString(String title, String inputPrompt, String wrongInputMessage, Pattern pattern, boolean hideInput) {
         String result = "";
 
         clearScreen();
@@ -101,7 +88,7 @@ public class PlayerInput {
                 System.out.print(inputPrompt);
             }
 
-            result = scan.nextLine();
+            result = ( hideInput ? new String(console.readPassword()) : console.readLine());;
 
             if (result != null && !result.isEmpty()) {
                 if (pattern != null && !pattern.pattern().isEmpty()) {
@@ -121,6 +108,13 @@ public class PlayerInput {
                 clearScreen();
             }
         }
+    }
+
+    /**
+     * The function prompts the user to press enter to continue.
+     */
+    public static void pressEnterToContinue() {
+        console.readLine("Press enter to contiune.");
     }
 
     /**

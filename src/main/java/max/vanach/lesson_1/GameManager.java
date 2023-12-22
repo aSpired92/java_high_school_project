@@ -69,15 +69,9 @@ public final class GameManager {
 
     private List<Player> players = new LinkedList<Player>();
 
-    private static GameType gameType;
-    private static GameMode gameMode;
-    private static Difficulty difficulty;
-
-    private static Menu menu;
-    private static Menu gameSingleplayerMenu;
-    private static Menu dificultyMenu;
-    private static Menu gameMultiplayerMenu;
-    private static Menu multiplayerSettingsMenu;
+    private GameType gameType;
+    private GameMode gameMode;
+    private Difficulty difficulty;
 
     private GameManager() {
         if (instance != null) {
@@ -92,18 +86,19 @@ public final class GameManager {
 
         Pattern p = Pattern.compile("[yn]", Pattern.CASE_INSENSITIVE);
         String answear = PlayerInput
-                .getInputString("Create more players for multiplayer game puposes? (Y/N)", ": ", "(Y)es or (N)o", p)
+                .getInputString("Create more players for multiplayer game puposes? (Y/N)", ": ", "(Y)es or (N)o", p, false)
                 .toLowerCase();
 
         if (answear.equals("y")) {
             createMultiplayerPlayers();
         }
 
-        menu.show();
+        Menu.getMenu("main").show();
     }
 
     /**
-     * The function creates a new player by prompting for a nickname and adding it to the list of
+     * The function creates a new player by prompting for a nickname and adding it
+     * to the list of
      * players.
      */
     private void createNewPlayer() {
@@ -115,19 +110,20 @@ public final class GameManager {
             prompt = ": ";
         }
 
-        String inputNickname = PlayerInput.getInputString(title, prompt, "Nickname can't be empty!", null);
+        String inputNickname = PlayerInput.getInputString(title, prompt, "Nickname can't be empty!", null, false);
 
         players.add(new Player(inputNickname));
     }
 
     /**
-     * The function creates a specified number of multiplayer players by calling the {@code createNewPlayer()}
+     * The function creates a specified number of multiplayer players by calling the
+     * {@code createNewPlayer()}
      * function.
      */
     private void createMultiplayerPlayers() {
         int numberOfPlayers = PlayerInput
-                .getInputInt("How many players would you like to add?", ": ", "Wrong number!",
-                        1, MAX_PLAYERS, false, true);
+                .getInputInt("How many players would you like to add? (Maximum " + MAX_PLAYERS + ")" , ": ", "Wrong number!",
+                        1, MAX_PLAYERS, false);
 
         for (int i = 0; i < numberOfPlayers; i++) {
             createNewPlayer();
@@ -138,108 +134,182 @@ public final class GameManager {
      * The function initializes menus and their options for a game menu system.
      */
     private void initializeMenus() {
-        menu = new Menu("MAIN MENU");
-        menu.add_option(new MenuOption("Singleplayer", setSinglePlayer));
-        menu.add_option(new MenuOption("Multiplayer", setMultiPlayer));
-        menu.add_option(new MenuOption("Exit", exit));
+        Menu.createMenu("main", "MAIN MENU");
+        Menu.addOptionToMenu("main", new MenuOption("Singleplayer", setSinglePlayer));
+        Menu.addOptionToMenu("main", new MenuOption("Multiplayer", setMultiPlayer));
+        Menu.addOptionToMenu("main", new MenuOption("Exit", exit));
 
-        gameSingleplayerMenu = new Menu("SINGLEPLAYER");
-        gameSingleplayerMenu.add_option(new MenuOption("Play", goToDifficultyMenu));
-        gameSingleplayerMenu.add_option(new MenuOption("Ranking", goToRanking));
-        gameSingleplayerMenu.add_option(new MenuOption("Back", goToMainMenu));
+        Menu.createMenu("gameSingleplayerMenu", "SINGLEPLAYER");
+        Menu.addOptionToMenu("gameSingleplayerMenu", new MenuOption("Play", goToSPGameModeSelection));
+        Menu.addOptionToMenu("gameSingleplayerMenu", new MenuOption("Ranking", goToRanking));
+        Menu.addOptionToMenu("gameSingleplayerMenu", new MenuOption("Back", goToMainMenu));
 
-        dificultyMenu = new Menu("DIFFICULTY");
-        dificultyMenu.add_option(new MenuOption("EASY", playEasy));
-        dificultyMenu.add_option(new MenuOption("MEDIUM", playMedium));
-        dificultyMenu.add_option(new MenuOption("HARD", playHard));
-        dificultyMenu.add_option(new MenuOption("Back", goToGameMenu));
+        Menu.createMenu("gameSPGameModesMenu", "GAME MODE");
+        Menu.addOptionToMenu("gameSPGameModesMenu", new MenuOption("Player versus computer", selectPVCGamemode));
+        Menu.addOptionToMenu("gameSPGameModesMenu", new MenuOption("Computer versus player", selectCVPGamemode));
+        Menu.addOptionToMenu("gameSPGameModesMenu", new MenuOption("Player versus computer mixed", selectPVCMGamemode));
 
-        gameMultiplayerMenu = new Menu("MULTIPLAYER");
-        gameMultiplayerMenu.add_option(new MenuOption("Play", goToDifficultyMenu));
-        gameMultiplayerMenu.add_option(new MenuOption("Ranking", goToRanking));
-        gameMultiplayerMenu.add_option(new MenuOption("Settings", goToMultiplayerSettings));
-        gameMultiplayerMenu.add_option(new MenuOption("Back", goToMainMenu));
+        Menu.createMenu("gameMultiplayerMenu", "MULTIPLAYER");
+        Menu.addOptionToMenu("gameMultiplayerMenu", new MenuOption("Play", goToMPGameModeSelection));
+        Menu.addOptionToMenu("gameMultiplayerMenu", new MenuOption("Ranking", goToRanking));
+        Menu.addOptionToMenu("gameMultiplayerMenu", new MenuOption("Settings", goToMultiplayerSettings));
+        Menu.addOptionToMenu("gameMultiplayerMenu", new MenuOption("Back", goToMainMenu));
 
-        multiplayerSettingsMenu = new Menu("MULTIPLAYER SETTINGS");
-        multiplayerSettingsMenu.add_option(new MenuOption("Change number of players", goToDifficultyMenu));
-        multiplayerSettingsMenu.add_option(new MenuOption("Change name of player", goToDifficultyMenu));
-        multiplayerSettingsMenu.add_option(new MenuOption("Back", goToGameMenu));
+        Menu.createMenu("gameMPGameModesMenu", "GAME MODE");
+        Menu.addOptionToMenu("gameMPGameModesMenu", new MenuOption("Player versus Player", selectPVPGamemode));
+        Menu.addOptionToMenu("gameMPGameModesMenu", new MenuOption("Players versus Computer", selectPsVCGamemode));
+
+        Menu.createMenu("multiplayerSettingsMenu", "MULTIPLAYER SETTINGS");
+        Menu.addOptionToMenu("multiplayerSettingsMenu", new MenuOption("Change number of players", changeNumberOfPlayers));
+        Menu.addOptionToMenu("multiplayerSettingsMenu", new MenuOption("Change name of player", changePlayerName));
+        Menu.addOptionToMenu("multiplayerSettingsMenu", new MenuOption("Back", goToGameMenu));
+
+        Menu.createMenu("dificultyMenu", "DIFFICULTY");
+        Menu.addOptionToMenu("dificultyMenu", new MenuOption("EASY", playEasy));
+        Menu.addOptionToMenu("dificultyMenu", new MenuOption("MEDIUM", playMedium));
+        Menu.addOptionToMenu("dificultyMenu", new MenuOption("HARD", playHard));
+        Menu.addOptionToMenu("dificultyMenu", new MenuOption("Back", goToGameMenu));
     }
 
-    private static void play() {
+    private void play() {
+        if (gameType == GameType.SINGLEPLAYER) {
+            Computer computer = new Computer();
+
+            switch (gameMode) {
+                case PLAYER_VS_PC: {
+                    Lobby lobby = new Lobby(computer, players.get(0), difficulty);
+
+                    lobby.play();
+
+                    break;
+                }
+                case PC_VS_PLAYER: {
+                    
+                    Lobby lobby = new Lobby(players.get(0), computer, difficulty);
+
+                    lobby.play();
+
+                    break;
+                }
+                case PLAYER_VS_PC_MIXED:
+                    break;
+                default:
+                    break;
+            }
+        } else if (gameType == GameType.MULTIPLAYER) {
+            switch (gameMode) {
+                case PLAYER_VS_PLAYER:
+
+                    break;
+                case PLAYERS_VS_PC:
+
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void showRanking() {
 
     }
 
-    private static void showRanking() {
+    private void changeNameOfPlayer() {
 
     }
 
-    private static void changeNameOfPlayer() {
+    private void numberOfPlayers() {
 
     }
 
-    private static void numberOfPlayers() {
-
-    }
-
-    private static final Thread setSinglePlayer = new Thread(() -> {
+    private final Thread setSinglePlayer = new Thread(() -> {
         gameType = GameType.SINGLEPLAYER;
-        gameSingleplayerMenu.show();
+        Menu.getMenu("gameSingleplayerMenu").show();
     });
 
-    private static final Thread setMultiPlayer = new Thread(() -> {
+    private final Thread goToSPGameModeSelection = new Thread(() -> {
+        Menu.getMenu("gameSPGameModesMenu").show();
+    });
+
+    private final Thread selectPVCGamemode = new Thread(() -> {
+        gameMode = GameMode.PLAYER_VS_PC;
+        Menu.getMenu("dificultyMenu").show();
+        
+    });
+
+    private final Thread selectCVPGamemode = new Thread(() -> {
+        gameMode = GameMode.PC_VS_PLAYER;
+        Menu.getMenu("dificultyMenu").show();
+    });
+
+    private final Thread selectPVCMGamemode = new Thread(() -> {
+        gameMode = GameMode.PLAYER_VS_PC_MIXED;
+        Menu.getMenu("dificultyMenu").show();
+    });
+
+    private final Thread setMultiPlayer = new Thread(() -> {
         gameType = GameType.MULTIPLAYER;
-        gameMultiplayerMenu.show();
+        Menu.getMenu("gameMultiplayerMenu").show();
     });
 
-    private static final Thread goToDifficultyMenu = new Thread(() -> {
-        dificultyMenu.show();
+    private final Thread goToMPGameModeSelection = new Thread(() -> {
+        Menu.getMenu("gameMPGameModesMenu").show();
     });
 
-    private static final Thread playEasy = new Thread(() -> {
+    private final Thread selectPVPGamemode = new Thread(() -> {
+        gameMode = GameMode.PLAYER_VS_PLAYER;
+        Menu.getMenu("dificultyMenu").show();
+    });
+
+    private final Thread selectPsVCGamemode = new Thread(() -> {
+        gameMode = GameMode.PLAYERS_VS_PC;
+        Menu.getMenu("dificultyMenu").show();
+    });
+
+    private final Thread playEasy = new Thread(() -> {
         difficulty = Difficulty.EASY;
         play();
     });
 
-    private static final Thread playMedium = new Thread(() -> {
+    private final Thread playMedium = new Thread(() -> {
         difficulty = Difficulty.MEDIUM;
         play();
     });
 
-    private static final Thread playHard = new Thread(() -> {
+    private final Thread playHard = new Thread(() -> {
         difficulty = Difficulty.HARD;
         play();
     });
 
-    private static final Thread goToMultiplayerSettings = new Thread(() -> {
-        multiplayerSettingsMenu.show();
+    private final Thread goToMultiplayerSettings = new Thread(() -> {
+        Menu.getMenu("multiplayerSettingsMenu").show();
     });
 
-    private static final Thread changePlayerName = new Thread(() -> {
+    private final Thread changePlayerName = new Thread(() -> {
         changeNameOfPlayer();
     });
 
-    private static final Thread changeNumberOfPlayers = new Thread(() -> {
+    private final Thread changeNumberOfPlayers = new Thread(() -> {
         numberOfPlayers();
     });
 
-    private static final Thread goToRanking = new Thread(() -> {
+    private final Thread goToRanking = new Thread(() -> {
         showRanking();
     });
 
-    private static final Thread goToGameMenu = new Thread(() -> {
+    private final Thread goToGameMenu = new Thread(() -> {
         if (gameType == GameType.SINGLEPLAYER) {
-            gameSingleplayerMenu.show();
-        } else if (gameType == GameType.SINGLEPLAYER) {
-            gameMultiplayerMenu.show();
+            Menu.getMenu("gameSingleplayerMenu").show();
+        } else if (gameType == GameType.MULTIPLAYER) {
+            Menu.getMenu("gameMultiplayerMenu").show();
         }
     });
 
-    private static final Thread goToMainMenu = new Thread(() -> {
-        menu.show();
+    private final Thread goToMainMenu = new Thread(() -> {
+        Menu.getMenu("menu").show();
     });
 
-    private static final Thread exit = new Thread(() -> {
+    private final Thread exit = new Thread(() -> {
         System.exit(0);
     });
 
