@@ -21,7 +21,7 @@ public class Menu {
     /**
      * Creates a menu with a given name and title if it doesn't already exist.
      * 
-     * @param name Name of the menu.
+     * @param name  Name of the menu.
      * @param title Title of the menu.
      */
     public static void createMenu(String name, String title) {
@@ -34,7 +34,7 @@ public class Menu {
      * Adds a {@code MenuOption} to a specified menu, if exists.
      * 
      * @param menuName Name of the menu to which the option will be added.
-     * @param option Option that will be added to a menu.
+     * @param option   Option that will be added to a menu.
      */
     public static void addOptionToMenu(String menuName, MenuOption option) {
         Menu m = menusMap.get(menuName);
@@ -52,7 +52,7 @@ public class Menu {
     public static Menu getMenu(String name) {
         return menusMap.get(name);
     }
-    
+
     public void addOption(MenuOption option) {
         options.add(option);
     }
@@ -69,7 +69,10 @@ public class Menu {
         }
         menuString += "==========================\n\n";
 
-        int choice = PlayerInput.getInputInt(menuString, "Option: ", "Wrong option!", 1, options.size(), false);
+        String inputPrompt = "Option: ";
+        String wrongInputMessage = "Wrong option!";
+
+        int choice = PlayerInput.getInputInt(menuString, inputPrompt, wrongInputMessage, 1, options.size(), false);
 
         options.get(choice - 1).process.run();
     }

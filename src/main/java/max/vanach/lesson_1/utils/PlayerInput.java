@@ -2,12 +2,16 @@ package max.vanach.lesson_1.utils;
 
 import java.io.Console;
 import java.io.IOException;
-import java.util.logging.ConsoleHandler;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PlayerInput {
     private final static Console console = System.console();
+
+    public final static Pattern PLAYER_NICKNAME_REGEX_PATERN = Pattern.compile("[a-z0-9_]{3,16}",
+            Pattern.CASE_INSENSITIVE);
+    public final static Pattern YES_NO_REGEX_PATERN = Pattern.compile("[yn]", Pattern.CASE_INSENSITIVE);
+    public final static Pattern NUMBER_COMPARE_INPUT_REGEX_PATERN = Pattern.compile("[hes]", Pattern.CASE_INSENSITIVE);;
 
     /**
      * Takes user input for an integer within a specified range and displays error
@@ -28,7 +32,8 @@ public class PlayerInput {
      * 
      * @return Valid user's input.
      */
-    public static int getInputInt(String title, String inputPrompt, String wrongInputMessage, int min, int max, boolean hideInput) {
+    public static int getInputInt(String title, String inputPrompt, String wrongInputMessage, int min, int max,
+            boolean hideInput) {
         int result = 0;
 
         clearScreen();
@@ -41,9 +46,9 @@ public class PlayerInput {
             if (inputPrompt != null && !inputPrompt.isEmpty()) {
                 System.out.print(inputPrompt);
             }
-            
-            String numberString = ( hideInput ? new String(console.readPassword()) : console.readLine());
-            if (Utilities.isNumeric(numberString)) {
+
+            String numberString = (hideInput ? new String(console.readPassword()) : console.readLine());
+            if (PlayerInput.isNumeric(numberString)) {
                 result = Integer.parseInt(numberString);
 
                 if (min <= result && result <= max) {
@@ -74,7 +79,8 @@ public class PlayerInput {
      *                          be considered valid.
      * @return The method is returning a String value.
      */
-    public static String getInputString(String title, String inputPrompt, String wrongInputMessage, Pattern pattern, boolean hideInput) {
+    public static String getInputString(String title, String inputPrompt, String wrongInputMessage, Pattern pattern,
+            boolean hideInput) {
         String result = "";
 
         clearScreen();
@@ -88,13 +94,13 @@ public class PlayerInput {
                 System.out.print(inputPrompt);
             }
 
-            result = ( hideInput ? new String(console.readPassword()) : console.readLine());;
+            result = (hideInput ? new String(console.readPassword()) : console.readLine());
 
             if (result != null && !result.isEmpty()) {
                 if (pattern != null && !pattern.pattern().isEmpty()) {
                     Matcher m = pattern.matcher(result);
 
-                    if (m.find()) {
+                    if (m.matches()) {
                         return result;
                     }
                 } else {
@@ -130,4 +136,18 @@ public class PlayerInput {
         }
     }
 
+    /**
+     * Checks if a given string can be parsed as a numeric value.
+     * 
+     * @param strNum {@code String} representing number.
+     * @return The method isNumeric is returning a boolean value.
+     */
+    public static boolean isNumeric(String strNum) {
+        try {
+            Double.parseDouble(strNum);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
 }

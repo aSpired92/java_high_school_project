@@ -1,11 +1,24 @@
 package max.vanach.lesson_1;
 
 public class RankingEntry {
-    String nickname;
-    int result;
+    private String nickname;
+    private int numberOfTries;
 
-    public RankingEntry(String nickname, int result) {
+    public RankingEntry(String nickname, int numberOfTries) {
         this.nickname = nickname;
-        this.result = result;
+        this.numberOfTries = numberOfTries;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public int getNumberOfTries() {
+        return numberOfTries;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return this.nickname.equals(((RankingEntry) o).nickname);
     }
 }

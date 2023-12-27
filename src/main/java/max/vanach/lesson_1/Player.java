@@ -1,7 +1,5 @@
 package max.vanach.lesson_1;
 
-import java.util.regex.Pattern;
-
 import max.vanach.lesson_1.utils.PlayerInput;
 
 public class Player {
@@ -14,13 +12,19 @@ public class Player {
         this.nickname = nickname;
     }
 
+    public String getNickname() {
+        return nickname;
+    }
+
     /**
      * The function prompts the user to enter a number within a specified range
      * 
-     * @param min The minimum value of the range from which the user can choose a
-     *            number.
-     * @param max The maximum number in the range.
-     * @param hideInput Determines whether the guessed number should be hidden or not.
+     * @param min       The minimum value of the range from which the user can
+     *                  choose a
+     *                  number.
+     * @param max       The maximum number in the range.
+     * @param hideInput Determines whether the guessed number should be hidden or
+     *                  not.
      */
     public void setNumber(int min, int max, boolean hideInput) {
         String title = "Choose number from range(" + min + "-" + max + ")";
@@ -32,15 +36,20 @@ public class Player {
     /**
      * Guess {@code askedPlayer}'s number
      * 
-     * @param askedPlayer The player who is being asked if guessed number is number player think of.
-     * @param min The minimum value of the range from which the user can choose a number.
-     * @param max The maximum number in the range.
-     * @param hideGuess Determines whether the guessed number should be hidden or not.
-     * @return Returns  guessed number if parameter {@code hideGuess} is true. Otherwise, it returns the result of comparing the guessed number
-     * with the number chosen by the {@code askedPlayer}.
+     * @param askedPlayer The player who is being asked if guessed number is number
+     *                    player think of.
+     * @param min         The minimum value of the range from which the user can
+     *                    choose a number.
+     * @param max         The maximum number in the range.
+     * @param hideGuess   Determines whether the guessed number should be hidden or
+     *                    not.
+     * @return Returns guessed number if parameter {@code hideGuess} is true.
+     *         Otherwise, it returns the result of comparing the guessed number
+     *         with the number chosen by the {@code askedPlayer}.
      */
     public int guessNumber(Player askedPlayer, int min, int max, boolean hideGuess) {
-        String title = "I'm thinking of a certain number in the range of " + min + " to " + max + ". What number is it? ";
+        String title = "I'm thinking of a certain number in the range of " + min + " to " + max
+                + ". What number is it? ";
         String wrongInputMessage = "Number is out of range! (" + min + "-" + max + ") Try again...";
 
         int number = PlayerInput.getInputInt(title, ": ", wrongInputMessage, min, max, hideGuess);
@@ -64,9 +73,10 @@ public class Player {
         String title = "Is " + number + " the number you thought of?";
         String prompt = "Your guess is ( too (H)igh, (E)qual or too (S)mall ): ";
         String wrongInputMessage = "Wrong option!";
-        Pattern p = Pattern.compile("[hes]", Pattern.CASE_INSENSITIVE);
 
-        String answear = PlayerInput.getInputString(title, prompt, wrongInputMessage, p, false).toLowerCase();
+        String answear = PlayerInput
+                .getInputString(title, prompt, wrongInputMessage, PlayerInput.NUMBER_COMPARE_INPUT_REGEX_PATERN, false)
+                .toLowerCase();
 
         switch (answear) {
             case "h":

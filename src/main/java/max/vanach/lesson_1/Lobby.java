@@ -46,17 +46,17 @@ public class Lobby {
 
             int result = -3;
             while (result != 0) {
-                tries.set(0,tries.get(0)+1);
-                
+                tries.set(0, tries.get(0) + 1);
+
                 result = guessingPlayer.guessNumber(playerChoosingNumber, guessingRange[0], guessingRange[1], false);
-                
+
                 if (result == -2) {
                     System.out.println(playerChoosingNumber.nickname + " cheated! Game is invalidated!");
                     PlayerInput.pressEnterToContinue();
                     return null;
                 }
 
-                if(!(playerChoosingNumber instanceof Player)) {
+                if (playerChoosingNumber instanceof Computer) {
                     if (result == 1) {
                         System.out.println("Too high! Try again...");
                         PlayerInput.pressEnterToContinue();
