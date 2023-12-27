@@ -1,8 +1,8 @@
 package max.vanach.lesson_1;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.regex.Pattern;
 
 import max.vanach.lesson_1.utils.PlayerInput;
 
@@ -73,6 +73,8 @@ public final class GameManager {
     private GameMode gameMode;
     private Difficulty difficulty;
 
+    private Ranking rankingInstance = Ranking.getInstance();
+
     private GameManager() {
         if (instance != null) {
             throw new RuntimeException("Not allowed. Please use getInstance() method");
@@ -84,9 +86,12 @@ public final class GameManager {
     public void run() {
         createNewPlayer();
 
-        Pattern p = Pattern.compile("[yn]", Pattern.CASE_INSENSITIVE);
+        String title = "Create more players for multiplayer game puposes? (Y/N)";
+        String prompt = ": ";
+        String wrongInputMessage = "(Y)es or (N)o";
+
         String answear = PlayerInput
-                .getInputString("Create more players for multiplayer game puposes? (Y/N)", ": ", "(Y)es or (N)o", p, false)
+                .getInputString(title, prompt, wrongInputMessage, PlayerInput.YES_NO_REGEX_PATERN, false)
                 .toLowerCase();
 
         if (answear.equals("y")) {
@@ -104,13 +109,15 @@ public final class GameManager {
     private void createNewPlayer() {
         String title = "";
         String prompt = "Nickname: ";
+        String wrongMessagePrompt = "Nickname must be 3-16 characters long and can have only alphanumeric and \"_\" characters!";
 
         if (players.size() > 0) {
             title = "Set nickname for Player" + (players.size() + 1) + ".";
             prompt = ": ";
         }
 
-        String inputNickname = PlayerInput.getInputString(title, prompt, "Nickname can't be empty!", null, false);
+        String inputNickname = PlayerInput.getInputString(title, prompt, wrongMessagePrompt,
+                PlayerInput.PLAYER_NICKNAME_REGEX_PATERN, false);
 
         players.add(new Player(inputNickname));
     }
@@ -121,9 +128,12 @@ public final class GameManager {
      * function.
      */
     private void createMultiplayerPlayers() {
+        String title = "How many players would you like to add? (Maximum " + MAX_PLAYERS + ")";
+        String inputPrompt = ": ";
+        String wrongInputMessage = "Wrong number!";
+
         int numberOfPlayers = PlayerInput
-                .getInputInt("How many players would you like to add? (Maximum " + MAX_PLAYERS + ")" , ": ", "Wrong number!",
-                        1, MAX_PLAYERS, false);
+                .getInputInt(title, inputPrompt, wrongInputMessage, 1, MAX_PLAYERS, false);
 
         for (int i = 0; i < numberOfPlayers; i++) {
             createNewPlayer();
@@ -160,7 +170,8 @@ public final class GameManager {
         Menu.addOptionToMenu("gameMPGameModesMenu", new MenuOption("Players versus Computer", selectPsVCGamemode));
 
         Menu.createMenu("multiplayerSettingsMenu", "MULTIPLAYER SETTINGS");
-        Menu.addOptionToMenu("multiplayerSettingsMenu", new MenuOption("Change number of players", changeNumberOfPlayers));
+        Menu.addOptionToMenu("multiplayerSettingsMenu",
+                new MenuOption("Change number of players", changeNumberOfPlayers));
         Menu.addOptionToMenu("multiplayerSettingsMenu", new MenuOption("Change name of player", changePlayerName));
         Menu.addOptionToMenu("multiplayerSettingsMenu", new MenuOption("Back", goToGameMenu));
 
@@ -172,6 +183,8 @@ public final class GameManager {
     }
 
     private void play() {
+        ArrayList<Integer> tries = new ArrayList<>();
+
         if (gameType == GameType.SINGLEPLAYER) {
             Computer computer = new Computer();
 
@@ -179,23 +192,29 @@ public final class GameManager {
                 case PLAYER_VS_PC: {
                     Lobby lobby = new Lobby(computer, players.get(0), difficulty);
 
-                    lobby.play();
+                    tries = lobby.play();
+
+                    rankingInstance.addEntry(Ranking.SINGLEPLAYER_RANKING_NAME, new RankingEntry(players.get(0).getNickname(), tries.get(0)));
 
                     break;
                 }
                 case PC_VS_PLAYER: {
-                    
+
                     Lobby lobby = new Lobby(players.get(0), computer, difficulty);
 
-                    lobby.play();
+                    lobby.play(); // Don't save tries for computer
 
                     break;
                 }
-                case PLAYER_VS_PC_MIXED:
+                case PLAYER_VS_PC_MIXED: {
+
+                }
                     break;
                 default:
                     break;
             }
+
+            
         } else if (gameType == GameType.MULTIPLAYER) {
             switch (gameMode) {
                 case PLAYER_VS_PLAYER:
@@ -206,6 +225,16 @@ public final class GameManager {
                     break;
                 default:
                     break;
+            }
+        }
+
+        // Save tries to ranking
+        if (tries.size() > 0) {
+
+            try {
+                rankingInstance.saveRankingToFile();
+            } catch (Exception e) {
+                System.err.println("Can't save ranking to file");
             }
         }
     }
@@ -234,7 +263,7 @@ public final class GameManager {
     private final Thread selectPVCGamemode = new Thread(() -> {
         gameMode = GameMode.PLAYER_VS_PC;
         Menu.getMenu("dificultyMenu").show();
-        
+
     });
 
     private final Thread selectCVPGamemode = new Thread(() -> {
