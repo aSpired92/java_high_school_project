@@ -3,9 +3,11 @@ package max.vanach.lesson_1;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
@@ -19,18 +21,16 @@ public class Ranking {
 
     private static Ranking instance = null;
 
+    public static final String SINGLEPLAYER_RANKING_NAME = "singleplayer";
+    public static final String MULTIPLAYER_RANKING_NAME = "multiplayer";
+
     private static final Path RANKING_FILE_PATH = Paths.get("./ranking.txt");
     private static final Path TEMP_FILE_NAME = Paths.get("./temp.txt");
-
-    public static final String SINGLEPLAYER_RANKING_NAME = "singleplayer";
-    public static final String MULTIPLAYER_PVP_RANKING_NAME = "multiplayerPVP";
-    public static final String MULTIPLAYER_PVC_RANKING_NAME = "multiplayerPVC";
 
     private Map<String, List<RankingEntry>> rankings = new HashMap<>() {
         {
             put(SINGLEPLAYER_RANKING_NAME, new LinkedList<RankingEntry>());
-            put(MULTIPLAYER_PVP_RANKING_NAME, new LinkedList<RankingEntry>());
-            put(MULTIPLAYER_PVC_RANKING_NAME, new LinkedList<RankingEntry>());
+            put(MULTIPLAYER_RANKING_NAME, new LinkedList<RankingEntry>());
         }
     };
 
@@ -49,21 +49,39 @@ public class Ranking {
         return instance;
     }
 
-    public void addEntry(String ranking, RankingEntry entry) {
+    /**
+     * Updates a ranking entry in a rankings map, either by replacing it with a new
+     * entry or adding it if it doesn't exist.
+     * 
+     * @param ranking String that represents the name of the ranking to be updated.
+     * @param entry   Ranking entry with which ranking will be updated.
+     */
+    public void updateEntry(String ranking, RankingEntry entry) {
         if (rankings.containsKey(ranking)) {
             List<RankingEntry> l = rankings.get(ranking);
             int index = l.indexOf(entry);
 
             if (index != -1) {
-                if (l.get(index).getNumberOfTries() > entry.getNumberOfTries()) {
-                    l.set(index, entry);
+                RankingEntry oldEntry = l.get(index);
+                RankingEntry e;
+                if (oldEntry.getNumberOfTries() > entry.getNumberOfTries()) {
+                    e = new RankingEntry(entry.getNickname(), entry.getNumberOfTries(),
+                            oldEntry.getWinCount() + (entry.getDidWin() ? 1 : 0));
+                } else {
+                    e = new RankingEntry(entry.getNickname(), oldEntry.getNumberOfTries(),
+                            oldEntry.getWinCount() + (entry.getDidWin() ? 1 : 0));
                 }
+
+                l.set(index, e);
             } else {
                 l.add(entry);
             }
         }
     }
 
+    /**
+     * Saves a ranking to a file, deleting the old rankings file if it exists.
+     */
     public void saveRankingToFile() throws IOException, SecurityException {
         File tempFile = new File(TEMP_FILE_NAME.toString());
         File resultsFile = new File(RANKING_FILE_PATH.toString());
@@ -117,35 +135,44 @@ public class Ranking {
                     }
 
                     if (!key.equals("")) {
-                        if (!key.equals(SINGLEPLAYER_RANKING_NAME) && !key.equals(MULTIPLAYER_PVP_RANKING_NAME)
-                                && !key.equals(MULTIPLAYER_PVC_RANKING_NAME)) {
+                        if (!key.equals(SINGLEPLAYER_RANKING_NAME) && !key.equals(MULTIPLAYER_RANKING_NAME)) {
                             key = "";
                             continue;
                         }
 
-                        if (!line.contains("=")) {
+                        if (!line.contains("=") && !line.contains(",")) {
                             continue;
                         }
 
-                        String[] arr = line.split("=", 2);
-                        String nickname = arr[0];
-                        String recordString = arr[1];
+                        String[] values = line.split("=", 2);
+                        String nickname = values[0];
+
+                        values = values[1].split(",", 2);
+                        String recordString = values[0];
+                        String winCountString = values[1];
 
                         Matcher m = PlayerInput.PLAYER_NICKNAME_REGEX_PATERN.matcher(nickname);
-                        if (!m.matches() || !PlayerInput.isNumeric(recordString)) {
+                        if (!m.matches() || !PlayerInput.isNumeric(recordString)
+                                || !PlayerInput.isNumeric(winCountString)) {
                             continue;
                         }
 
-                        int result = Integer.parseInt(arr[1]);
+                        int record = Integer.parseInt(values[0]);
+                        int winCount = Integer.parseInt(values[1]);
 
-                        RankingEntry entry = new RankingEntry(nickname, result);
-                        this.addEntry(key, entry);
+                        RankingEntry entry = new RankingEntry(nickname, record, winCount);
+                        this.updateEntry(key, entry);
                     }
                 }
             }
         }
     }
 
+    /**
+     * The function serializes a map of rankings into a string format.
+     * 
+     * @return The method is returning a string representation of the rankings.
+     */
     private String serializeRankings() {
         String result = "";
 
@@ -156,10 +183,58 @@ public class Ranking {
             result += "[" + key + "]\n";
 
             for (RankingEntry entry : value) {
-                result += entry.getNickname() + "=" + entry.getNumberOfTries() + "\n";
+                result += entry.getNickname() + "=" + entry.getNumberOfTries() + "," + entry.getWinCount() + "\n";
             }
         }
 
         return result;
+    }
+
+    /**
+     * Displays a ranking of players sorted by their best number of tries in either
+     * the singleplayer or multiplayer mode.
+     * 
+     * @param rankingName String that represents the name of the ranking to be
+     *                    displayed.
+     */
+    public void displayRanking(String rankingName) {
+        ArrayList<RankingEntry> entries;
+        String title = "";
+
+        if (rankingName.equals(SINGLEPLAYER_RANKING_NAME) && rankings.containsKey(SINGLEPLAYER_RANKING_NAME)) {
+            entries = new ArrayList<>(rankings.get(SINGLEPLAYER_RANKING_NAME));
+            title = "Singleplayer ranking";
+        } else if (rankingName.equals(MULTIPLAYER_RANKING_NAME) && rankings.containsKey(MULTIPLAYER_RANKING_NAME)) {
+            entries = new ArrayList<>(rankings.get(MULTIPLAYER_RANKING_NAME));
+            title = "Multiplayer ranking";
+        } else {
+            return;
+        }
+
+        Collections.sort(entries, new Comparator<RankingEntry>() {
+            public int compare(RankingEntry e1, RankingEntry e2) {
+                return Integer.compare(e1.getNumberOfTries(), e2.getNumberOfTries());
+            }
+        });
+
+        int maxIntLength = (Integer.toString(Integer.MAX_VALUE)).length() + 1;
+
+        PlayerInput.clearScreen();
+
+        System.out.println(title);
+
+        for (int i = 0; i < entries.size(); i++) {
+            RankingEntry e = entries.get(i);
+
+            String space1 = new String(new char[17 - e.getNickname().length()]).replace('\0', ' ');
+            String space2 = new String(new char[maxIntLength - Integer.toString(e.getNumberOfTries()).length()])
+                    .replace('\0', ' ');
+
+            System.out.println((i + 1) + ". " + e.getNickname() + space1 + "| Best number of tries: "
+                    + e.getNumberOfTries() + space2 + "| Number of wins: " + e.getWinCount());
+        }
+
+        System.out.println();
+        PlayerInput.pressEnterToContinue();
     }
 }

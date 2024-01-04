@@ -14,7 +14,8 @@ public class Computer extends Player {
     private Random rand;
 
     public Computer() {
-        super("Max");
+        super("Computer");
+        
         rand = new Random();
         rand.setSeed(rand.nextLong());
         numbersThoughtOf = new ArrayList<>();
@@ -59,7 +60,7 @@ public class Computer extends Player {
 
         numbersThoughtOf.add(number);
 
-        int comparison = askedPlayer.compareNumber(number);
+        int comparison = askedPlayer.compareNumber(number, false);
 
         numbersThoughtOf.add(number);
 
@@ -79,18 +80,5 @@ public class Computer extends Player {
         }
 
         return comparison;
-    }
-
-    /**
-     * Returns the difference between the input number and a stored number
-     * 
-     * @param number Value that is comapred to the player number.
-     * @return {@code -1} if input number is smaller,
-     *         {@code 0} when numbers are equal,
-     *         {@code 1} when input number is greater.
-     */
-    @Override
-    public int compareNumber(int number) {
-        return Math.clamp(number - this.number, -1, 1);
     }
 }

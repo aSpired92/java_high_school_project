@@ -16,6 +16,10 @@ public class Player {
         return nickname;
     }
 
+    public void setNickname(String value) {
+        nickname = value;
+    }
+
     /**
      * The function prompts the user to enter a number within a specified range
      * 
@@ -48,7 +52,7 @@ public class Player {
      *         with the number chosen by the {@code askedPlayer}.
      */
     public int guessNumber(Player askedPlayer, int min, int max, boolean hideGuess) {
-        String title = "I'm thinking of a certain number in the range of " + min + " to " + max
+        String title =  nickname + ", I'm thinking of a certain number in the range of " + min + " to " + max
                 + ". What number is it? ";
         String wrongInputMessage = "Number is out of range! (" + min + "-" + max + ") Try again...";
 
@@ -57,7 +61,7 @@ public class Player {
         if (hideGuess) {
             return number;
         } else {
-            return askedPlayer.compareNumber(number);
+            return askedPlayer.compareNumber(number, askedPlayer instanceof Computer);
         }
     }
 
@@ -69,7 +73,11 @@ public class Player {
      *         {@code 0} when numbers are equal,
      *         {@code 1} when input number is greater.
      */
-    public int compareNumber(int number) {
+    public int compareNumber(int number, boolean autoResolve) {
+        if (autoResolve) {
+            return Math.clamp(number - this.number, -1, 1);
+        }
+        
         String title = "Is " + number + " the number you thought of?";
         String prompt = "Your guess is ( too (H)igh, (E)qual or too (S)mall ): ";
         String wrongInputMessage = "Wrong option!";
