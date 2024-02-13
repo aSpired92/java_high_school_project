@@ -36,17 +36,37 @@ public class Computer extends Player {
     /**
      * Guess {@code askedPlayer}'s number
      * 
-     * @param askedPlayer The player who is being asked if guessed number is number
-     *                    player think of.
-     * @param min         The minimum value of the range from which the user can
-     *                    choose a number.
-     * @param max         The maximum number in the range.
-     * @param hideGuess   Unused.
+     * @param askedPlayer   The player who is being asked if guessed number is
+     *                      number
+     *                      player think of.
+     * @param min           The minimum value of the range from which the user can
+     *                      choose a number.
+     * @param max           The maximum number in the range.
+     * @param hideGuess     Unused.
+     * @param canUseHelpers Unused.
+     * @param isTournament  Unused.
      * @return Returns the result of comparing the guessed number with the number
      *         chosen by the {@code askedPlayer}.
      */
     @Override
-    public int guessNumber(Player askedPlayer, int min, int max, boolean hideGuess) {
+    public int guessNumber(Player askedPlayer, int min, int max, boolean hideGuess, boolean canUseHelpers, boolean isTournament) {
+        return guessNumber(askedPlayer, min, max, hideGuess);
+    }
+
+    /**
+     * Guess {@code askedPlayer}'s number
+     * 
+     * @param askedPlayer   The player who is being asked if guessed number is
+     *                      number
+     *                      player think of.
+     * @param min           The minimum value of the range from which the user can
+     *                      choose a number.
+     * @param max           The maximum number in the range.
+     * @param hideGuess     Unused.
+     * @return Returns the result of comparing the guessed number with the number
+     *         chosen by the {@code askedPlayer}.
+     */
+    private int guessNumber(Player askedPlayer, int min, int max, boolean hideGuess) {
         realMin = (realMin == Integer.MIN_VALUE ? min : realMin);
         realMax = (realMax == Integer.MAX_VALUE ? max : realMax);
 

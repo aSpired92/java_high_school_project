@@ -238,7 +238,8 @@ public final class GameManager {
                 Player numberChoosingPlayer = (gameMode == GameMode.PLAYER_VS_PC ? computer : players.get(0));
                 Player numberGuessingPlayer = (gameMode == GameMode.PLAYER_VS_PC ? players.get(0) : computer);
 
-                lobby = new Lobby(numberChoosingPlayer, numberGuessingPlayer, range[0], range[1]);
+                lobby = new Lobby(numberChoosingPlayer, numberGuessingPlayer, range[0], range[1], 
+                        Ranking.isPlayerMaster(numberGuessingPlayer.getNickname()) ? 1 : 0);
                 
                 tries = lobby.play(gameType);
 
@@ -283,7 +284,13 @@ public final class GameManager {
                             players.stream().filter(p -> !p.getNickname().equals(playerChoosingNumber.getNickname()))
                                     .collect(Collectors.toList()));
 
-                    Lobby lobby = new Lobby(playerChoosingNumber, guessingPlayers, range[0], range[1]);
+                    ArrayList<Integer> avaibleHelpers = new ArrayList<>();
+
+                    for (int i=0; i<guessingPlayers.size(); i++) {
+                        avaibleHelpers.add(Ranking.isPlayerMaster(guessingPlayers.get(i).getNickname()) ? 1 : 0);
+                    }
+
+                    Lobby lobby = new Lobby(playerChoosingNumber, guessingPlayers, range[0], range[1], avaibleHelpers);
 
                     tries = lobby.play(gameType);
                     int best = tries.stream().min(Integer::compare).get();
@@ -308,7 +315,13 @@ public final class GameManager {
                 case PLAYERS_VS_PC: {
                     Computer computer = new Computer();
 
-                    Lobby lobby = new Lobby(computer, players, range[0], range[1]);
+                    ArrayList<Integer> avaibleHelpers = new ArrayList<>();
+
+                    for (int i = 0; i < players.size(); i++) {
+                        avaibleHelpers.add(Ranking.isPlayerMaster(players.get(i).getNickname()) ? 1 : 0);
+                    }
+
+                    Lobby lobby = new Lobby(computer, players, range[0], range[1], avaibleHelpers);
 
                     tries = lobby.play(gameType);
                     int best = tries.stream().min(Integer::compare).get();
@@ -415,6 +428,12 @@ public final class GameManager {
                     new RankingEntry(nickname, -1, didWin, didWin));
         }
 
+        try {
+            rankingInstance.saveRankingToFile();
+        } catch (Exception e) {
+            System.err.println("Can't save ranking to file");
+            PlayerInput.pressEnterToContinue();
+        }
     }
 
     private void showRanking(String rankingName) {

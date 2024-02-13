@@ -55,7 +55,6 @@ public class Bracket {
 
                 displayBracket();
                 PlayerInput.pressEnterToContinue();
-
                 
                 continue;
             }

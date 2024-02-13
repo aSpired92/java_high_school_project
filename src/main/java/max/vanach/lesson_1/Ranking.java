@@ -293,4 +293,8 @@ public class Ranking {
                 return "";
         }
     }
+
+    public static boolean isPlayerMaster(String nickname) {
+        return instance.rankings.get(TOURNAMENT_RANKING_NAME).stream().anyMatch(e -> (e.getNickname().equals(nickname) && e.isMaster()));
+    }
 }

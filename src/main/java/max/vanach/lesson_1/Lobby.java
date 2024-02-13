@@ -15,6 +15,8 @@ public class Lobby {
     private int minRange;
     private int maxRange;
 
+    private List<Integer> helpersAvaible;
+
     // Prevent from using default constructor
     private Lobby() { }
 
@@ -26,15 +28,33 @@ public class Lobby {
 
         this.guessingPlayers = new ArrayList<>(1);
         this.guessingPlayers.add(playerGuessingNumber);
+
+        this.helpersAvaible = new ArrayList<>(1);
+        this.helpersAvaible.add(0);
     }
 
-    public Lobby(Player playerChoosingNumber, List<Player> guessingPlayers, int minRange, int maxRange) {
+    public Lobby(Player playerChoosingNumber, Player playerGuessingNumber, int minRange, int maxRange, int helpersAvaible) {
+        this.playerChoosingNumber = playerChoosingNumber;
+        
+        this.minRange = minRange;
+        this.maxRange = maxRange;
+
+        this.guessingPlayers = new ArrayList<>(1);
+        this.guessingPlayers.add(playerGuessingNumber);
+
+        this.helpersAvaible = new ArrayList<>(1);
+        this.helpersAvaible.add(helpersAvaible);
+    }
+
+    public Lobby(Player playerChoosingNumber, List<Player> guessingPlayers, int minRange, int maxRange, List<Integer> helpersAvaible) {
         this.playerChoosingNumber = playerChoosingNumber;
 
         this.minRange = minRange;
         this.maxRange = maxRange;
 
         this.guessingPlayers = new ArrayList<>(guessingPlayers);
+
+        this.helpersAvaible = new ArrayList<>(helpersAvaible);
     }
 
     /**
@@ -59,10 +79,15 @@ public class Lobby {
             do {
                 tries.set(0, tries.get(0) + 1);
 
-                result = guessingPlayer.guessNumber(playerChoosingNumber, minRange, maxRange, isTournament);
+                boolean isHelperAvaible = helpersAvaible.get(0) > 0;
+
+                result = guessingPlayer.guessNumber(playerChoosingNumber, minRange, maxRange, isTournament, isHelperAvaible, isTournament);
+                if (guessingPlayer.didUseHelper()) {
+                    helpersAvaible.set(0, 0);
+                }
 
                 if (result == -2) {
-                    System.out.println(playerChoosingNumber.nickname + " cheated! Game is invalidated!");
+                    System.out.println(playerChoosingNumber.getNickname() + " cheated! Game is invalidated!");
                     PlayerInput.pressEnterToContinue();
                     return null;
                 }
@@ -100,7 +125,21 @@ public class Lobby {
                         continue;
                     }
 
-                    numbers.set(i, guessingPlayers.get(i).guessNumber(null, minRange, maxRange, true));
+                    boolean isHelperAvaible = helpersAvaible.get(i) > 0 && Ranking.isPlayerMaster(guessingPlayers.get(i).getNickname());
+                    if (guessingPlayers.get(0).didUseHelper()) {
+                        helpersAvaible.set(i, 0);
+                    }
+
+                    numbers.set(
+                            i, 
+                            guessingPlayers.get(i).guessNumber(
+                                    null, 
+                                    minRange, 
+                                    maxRange, 
+                                    true, 
+                                    isHelperAvaible, 
+                                    false));
+
                     tries.set(i, tries.get(i) + 1);
                 }
                 

@@ -1,5 +1,7 @@
 package max.vanach.lesson_1;
 
+import java.util.ArrayList;
+import java.util.Random;
 import max.vanach.lesson_1.utils.PlayerInput;
 
 public class Player {
@@ -7,6 +9,8 @@ public class Player {
     protected String nickname;
 
     protected int number;
+
+    private boolean usedHelper = false;
 
     public Player(String nickname) {
         this.nickname = nickname;
@@ -18,6 +22,15 @@ public class Player {
 
     public void setNickname(String value) {
         nickname = value;
+    }
+
+    public boolean didUseHelper() {
+        if (usedHelper) {
+            usedHelper = false;
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -46,29 +59,113 @@ public class Player {
     /**
      * Guess {@code askedPlayer}'s number
      * 
-     * @param askedPlayer The player who is being asked if guessed number is number
-     *                    player think of.
-     * @param min         The minimum value of the range from which the user can
-     *                    choose a number.
-     * @param max         The maximum number in the range.
-     * @param hideGuess   Determines whether the guessed number should be hidden or
-     *                    not.
+     * @param askedPlayer  The player who is being asked if guessed number is number
+     *                     player think of.
+     * @param min          The minimum value of the range from which the user can
+     *                     choose a number.
+     * @param max          The maximum number in the range.
+     * @param hideGuess    Determines whether the guessed number should be hidden or
+     *                     not.
+     * @param isTournament Is this part of tournament
      * @return Returns guessed number if parameter {@code hideGuess} is true.
      *         Otherwise, it returns the result of comparing the guessed number
      *         with the number chosen by the {@code askedPlayer}.
      */
-    public int guessNumber(Player askedPlayer, int min, int max, boolean hideGuess) {
+    public int guessNumber(Player askedPlayer, int min, int max, boolean hideGuess, boolean canUseHelpers, boolean isTournament) {
         String title =  nickname + ", I'm thinking of a certain number in the range of " + min + " to " + max
                 + ". What number is it? ";
         String wrongInputMessage = "Number is out of range! (" + min + "-" + max + ") Try again...";
 
-        int number = PlayerInput.getInputInt(
-                title, 
-                ": ", 
-                wrongInputMessage, 
-                min, 
-                max, 
-                hideGuess);
+        int number = 0;
+
+        if (canUseHelpers) {
+            title += "\nYou have avaible helpers. You can use one of them once or guess number.\n";
+            if (isTournament) {
+                title += "a. Narrow down guessing range\n";
+            } else {
+                title += "a. Guess number from 4 numbers\n";
+            }
+
+            String nString = PlayerInput.getInputIntOrString(
+                    title,
+                    ": ",
+                    wrongInputMessage,
+                    min,
+                    max,
+                    (isTournament ? PlayerInput.TOURNAMENT_HELP_PATTERN : PlayerInput.NORMAL_HELP_PATTERN),
+                    hideGuess);
+
+            if (PlayerInput.isNumeric(nString)) {
+                number = Integer.parseInt(nString);
+            } else {
+                usedHelper = true;
+
+                Random rnd = new Random();
+                rnd.setSeed(rnd.nextLong());
+
+                if (isTournament) {
+                    int n = askedPlayer.number;
+
+                    int newMin = min + rnd.nextInt(n - min);
+                    int newMax = n + rnd.nextInt(max - n);
+                    return guessNumber(askedPlayer, newMin, newMax, hideGuess, false, isTournament);
+                } else {
+                    boolean correctPlaced = false;
+                    int correctNumber = askedPlayer.number;
+                    ArrayList<Integer> numbers = new ArrayList<>();
+                    char c = 'a';
+                    
+                    title = nickname + ", I'm thinking of a certain number from ones below. What number is it?\n";
+                    wrongInputMessage = "It's not correct answear. Try again...";
+
+                    for (int i=0; i<4; i++) {
+                        if (i > 0) {
+                            title += "\t";
+                        }
+
+                        if (!correctPlaced) {
+                            boolean place = rnd.nextInt(2) == 0;
+                            correctPlaced = place;
+
+                            if (place || 4-i == 1) {
+                                numbers.add(correctNumber);
+                                title += c++ + ". " + correctNumber;
+                            }
+
+                        } else {
+                            int n = rnd.nextInt(min, max);
+                            while (n == correctNumber) {
+                                n = rnd.nextInt(min, max);
+                            }
+                            
+                            numbers.add(n);
+                            title += c++ + ". " + n;
+                        }
+                    }
+
+                    PlayerInput.clearScreen();
+
+                    String strAnswear = PlayerInput.getInputString(
+                            title,
+                            ": ",
+                            wrongInputMessage,
+                            PlayerInput.QUIZ_PATTERN,
+                            hideGuess);
+
+                    int answear = strAnswear.charAt(0) - 'a';
+
+                    number = numbers.get(answear);
+                }
+            }
+        } else {
+            number = PlayerInput.getInputInt(
+                    title,
+                    ": ",
+                    wrongInputMessage,
+                    min,
+                    max,
+                    hideGuess);
+        }
 
         if (hideGuess) {
             return number;

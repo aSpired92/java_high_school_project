@@ -10,7 +10,10 @@ public class PlayerInput {
 
     public final static Pattern PLAYER_NICKNAME_REGEX_PATERN = Pattern.compile("[a-z0-9_]{3,16}", Pattern.CASE_INSENSITIVE);
     public final static Pattern YES_NO_REGEX_PATERN = Pattern.compile("[yn]", Pattern.CASE_INSENSITIVE);
-    public final static Pattern NUMBER_COMPARE_INPUT_REGEX_PATERN = Pattern.compile("[hes]", Pattern.CASE_INSENSITIVE);;
+    public final static Pattern NUMBER_COMPARE_INPUT_REGEX_PATERN = Pattern.compile("[hes]", Pattern.CASE_INSENSITIVE);
+    public final static Pattern NORMAL_HELP_PATTERN = Pattern.compile("[a]", Pattern.CASE_INSENSITIVE);
+    public final static Pattern TOURNAMENT_HELP_PATTERN = Pattern.compile("[a]", Pattern.CASE_INSENSITIVE);
+    public final static Pattern QUIZ_PATTERN = Pattern.compile("[abcd]", Pattern.CASE_INSENSITIVE);
 
     /**
      * Takes user input for an integer within a specified range and displays error
@@ -56,6 +59,7 @@ public class PlayerInput {
 
             if (wrongInputMessage != null && !wrongInputMessage.isEmpty()) {
                 System.out.println(wrongInputMessage);
+                pressEnterToContinue();
             } else {
                 clearScreen();
             }
@@ -107,6 +111,69 @@ public class PlayerInput {
 
             if (wrongInputMessage != null && !wrongInputMessage.isEmpty()) {
                 System.out.println(wrongInputMessage);
+                pressEnterToContinue();
+            } else {
+                clearScreen();
+            }
+        }
+    }
+
+    /**
+     * Prompts the user for input until the input matches the specified pattern if
+     * specified.
+     * 
+     * @param title             The title is a string that represents the title. It
+     *                          is displayed before the input prompt.
+     * @param inputPrompt       Message that will be displayed to the user before
+     *                          the user input.
+     * @param wrongInputMessage Message that will be displayed when the user enters
+     *                          an invalid input.
+     * @param min               The minimum value that the user can input.
+     * @param max               The maximum value that the user can input.
+     * @param pattern           A regular expression pattern that the user's input
+     *                          must match in order for it to
+     *                          be considered valid.
+     * @return The method is returning a String value.
+     */
+    public static String getInputIntOrString(String title, String inputPrompt, String wrongInputMessage, int min, int max, Pattern pattern, boolean hideInput) {
+        String result = "";
+
+        clearScreen();
+
+        if (title != null && !title.isEmpty()) {
+            System.out.println(title);
+        }
+
+        while (true) {
+            if (inputPrompt != null && !inputPrompt.isEmpty()) {
+                System.out.print(inputPrompt);
+            }
+
+            result = (hideInput ? new String(console.readPassword()) : console.readLine());
+
+            if (result != null && !result.isEmpty()) {
+                if (PlayerInput.isNumeric(result)) {
+                    int n = Integer.parseInt(result);
+
+                    if (min <= n && n <= max) {
+                        return String.valueOf(n);
+                    }
+                }
+
+                if (pattern != null && !pattern.pattern().isEmpty()) {
+                    Matcher m = pattern.matcher(result);
+
+                    if (m.matches()) {
+                        return result;
+                    }
+                } else {
+                    return result;
+                }
+            }
+
+            if (wrongInputMessage != null && !wrongInputMessage.isEmpty()) {
+                System.out.println(wrongInputMessage);
+                pressEnterToContinue();
             } else {
                 clearScreen();
             }
