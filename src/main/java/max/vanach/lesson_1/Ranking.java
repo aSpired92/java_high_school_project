@@ -23,6 +23,7 @@ public class Ranking {
 
     public static final String SINGLEPLAYER_RANKING_NAME = "singleplayer";
     public static final String MULTIPLAYER_RANKING_NAME = "multiplayer";
+    public static final String TOURNAMENT_RANKING_NAME = "tournament";
 
     private static final Path RANKING_FILE_PATH = Paths.get("./ranking.txt");
     private static final Path TEMP_FILE_NAME = Paths.get("./temp.txt");
@@ -31,6 +32,7 @@ public class Ranking {
         {
             put(SINGLEPLAYER_RANKING_NAME, new LinkedList<RankingEntry>());
             put(MULTIPLAYER_RANKING_NAME, new LinkedList<RankingEntry>());
+            put(TOURNAMENT_RANKING_NAME, new LinkedList<RankingEntry>());
         }
     };
 
@@ -64,13 +66,15 @@ public class Ranking {
             if (index != -1) {
                 RankingEntry oldEntry = l.get(index);
                 RankingEntry e;
-                if (oldEntry.getNumberOfTries() > entry.getNumberOfTries()) {
-                    e = new RankingEntry(entry.getNickname(), entry.getNumberOfTries(),
-                            oldEntry.getWinCount() + (entry.getDidWin() ? 1 : 0));
-                } else {
-                    e = new RankingEntry(entry.getNickname(), oldEntry.getNumberOfTries(),
-                            oldEntry.getWinCount() + (entry.getDidWin() ? 1 : 0));
-                }
+
+                int n = (oldEntry.getNumberOfTries() < entry.getNumberOfTries()) ? oldEntry.getNumberOfTries() : entry.getNumberOfTries();
+
+                e = new RankingEntry(
+                        entry.getNickname(),
+                        n,
+                        oldEntry.getWinCount() + (entry.getDidWin() ? 1 : 0),
+                        entry.isMaster());
+                
 
                 l.set(index, e);
             } else {
@@ -135,32 +139,42 @@ public class Ranking {
                     }
 
                     if (!key.equals("")) {
-                        if (!key.equals(SINGLEPLAYER_RANKING_NAME) && !key.equals(MULTIPLAYER_RANKING_NAME)) {
+                        if (!key.equals(SINGLEPLAYER_RANKING_NAME) && 
+                                !key.equals(MULTIPLAYER_RANKING_NAME) && 
+                                !key.equals(TOURNAMENT_RANKING_NAME)) {
                             key = "";
                             continue;
                         }
 
-                        if (!line.contains("=") && !line.contains(",")) {
+                        String[] values = line.split("=", 2);
+                        if (values.length < 2) {
                             continue;
                         }
 
-                        String[] values = line.split("=", 2);
                         String nickname = values[0];
 
-                        values = values[1].split(",", 2);
+                        values = values[1].split(",", 3);
+                        if (values.length < 3) {
+                            continue;
+                        }
+
                         String recordString = values[0];
                         String winCountString = values[1];
+                        String isMasterString = values[2];
 
                         Matcher m = PlayerInput.PLAYER_NICKNAME_REGEX_PATERN.matcher(nickname);
-                        if (!m.matches() || !PlayerInput.isNumeric(recordString)
-                                || !PlayerInput.isNumeric(winCountString)) {
+                        if (!m.matches() || 
+                                !PlayerInput.isNumeric(recordString) || 
+                                !PlayerInput.isNumeric(winCountString) ||
+                                !(isMasterString.equals("true") || isMasterString.equals("false"))) {
                             continue;
                         }
 
                         int record = Integer.parseInt(values[0]);
                         int winCount = Integer.parseInt(values[1]);
+                        boolean isMaster = Boolean.parseBoolean(values[2]);
 
-                        RankingEntry entry = new RankingEntry(nickname, record, winCount);
+                        RankingEntry entry = new RankingEntry(nickname, record, winCount, isMaster);
                         this.updateEntry(key, entry);
                     }
                 }
@@ -183,7 +197,10 @@ public class Ranking {
             result += "[" + key + "]\n";
 
             for (RankingEntry entry : value) {
-                result += entry.getNickname() + "=" + entry.getNumberOfTries() + "," + entry.getWinCount() + "\n";
+                result += entry.getNickname() + "=" + 
+                    entry.getNumberOfTries() + "," + 
+                    entry.getWinCount() + "," + 
+                    String.valueOf(entry.isMaster()) + "\n";
             }
         }
 
@@ -207,6 +224,9 @@ public class Ranking {
         } else if (rankingName.equals(MULTIPLAYER_RANKING_NAME) && rankings.containsKey(MULTIPLAYER_RANKING_NAME)) {
             entries = new ArrayList<>(rankings.get(MULTIPLAYER_RANKING_NAME));
             title = "Multiplayer ranking";
+        }else if (rankingName.equals(TOURNAMENT_RANKING_NAME) && rankings.containsKey(TOURNAMENT_RANKING_NAME)) {
+            entries = new ArrayList<>(rankings.get(TOURNAMENT_RANKING_NAME));
+            title = "Tournament ranking";
         } else {
             return;
         }
@@ -226,15 +246,51 @@ public class Ranking {
         for (int i = 0; i < entries.size(); i++) {
             RankingEntry e = entries.get(i);
 
+            String out = "";
+
             String space1 = new String(new char[17 - e.getNickname().length()]).replace('\0', ' ');
             String space2 = new String(new char[maxIntLength - Integer.toString(e.getNumberOfTries()).length()])
                     .replace('\0', ' ');
+            
 
-            System.out.println((i + 1) + ". " + e.getNickname() + space1 + "| Best number of tries: "
+            System.out.print((i + 1) + ". " + e.getNickname() + space1 + "| Best number of tries: "
                     + e.getNumberOfTries() + space2 + "| Number of wins: " + e.getWinCount());
+
+            out += (i + 1) + ". " + e.getNickname() + space1;
+
+            if (e.getNumberOfTries() > 0) {
+                out += "| Best number of tries: " + e.getNumberOfTries() + space2;
+            }
+
+            out += "| Number of wins: " + e.getWinCount();
+            
+            if (e.isMaster()) {
+                String space3 = new String(new char[maxIntLength - Integer.toString(e.getWinCount()).length()])
+                        .replace('\0', ' ');
+                out += space3;
+                out += " | Master";
+            }
+
+            System.out.println(out);
         }
 
         System.out.println();
         PlayerInput.pressEnterToContinue();
+    }
+
+    public static String getRankingNameFromGameType(GameType gameType) {
+        switch (gameType) {
+            case SINGLEPLAYER:
+                return SINGLEPLAYER_RANKING_NAME;
+        
+            case MULTIPLAYER:
+                return MULTIPLAYER_RANKING_NAME;
+        
+            case TOURNAMENT:
+                return TOURNAMENT_RANKING_NAME;
+        
+            default:
+                return "";
+        }
     }
 }

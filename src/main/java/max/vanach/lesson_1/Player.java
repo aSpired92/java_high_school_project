@@ -34,7 +34,13 @@ public class Player {
         String title = "Choose number from range(" + min + "-" + max + ")";
         String wrongInputMessage = "Wrong number!";
 
-        number = PlayerInput.getInputInt(title, ": ", wrongInputMessage, min, max, hideInput);
+        number = PlayerInput.getInputInt(
+                title, 
+                ": ", 
+                wrongInputMessage, 
+                min, 
+                max, 
+                hideInput);
     }
 
     /**
@@ -56,7 +62,13 @@ public class Player {
                 + ". What number is it? ";
         String wrongInputMessage = "Number is out of range! (" + min + "-" + max + ") Try again...";
 
-        int number = PlayerInput.getInputInt(title, ": ", wrongInputMessage, min, max, hideGuess);
+        int number = PlayerInput.getInputInt(
+                title, 
+                ": ", 
+                wrongInputMessage, 
+                min, 
+                max, 
+                hideGuess);
 
         if (hideGuess) {
             return number;
@@ -83,7 +95,12 @@ public class Player {
         String wrongInputMessage = "Wrong option!";
 
         String answear = PlayerInput
-                .getInputString(title, prompt, wrongInputMessage, PlayerInput.NUMBER_COMPARE_INPUT_REGEX_PATERN, false)
+                .getInputString(
+                        title, 
+                        prompt, 
+                        wrongInputMessage, 
+                        PlayerInput.NUMBER_COMPARE_INPUT_REGEX_PATERN, 
+                        false)
                 .toLowerCase();
 
         switch (answear) {

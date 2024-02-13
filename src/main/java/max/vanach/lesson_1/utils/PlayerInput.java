@@ -8,8 +8,7 @@ import java.util.regex.Pattern;
 public class PlayerInput {
     private final static Console console = System.console();
 
-    public final static Pattern PLAYER_NICKNAME_REGEX_PATERN = Pattern.compile("[a-z0-9_]{3,16}",
-            Pattern.CASE_INSENSITIVE);
+    public final static Pattern PLAYER_NICKNAME_REGEX_PATERN = Pattern.compile("[a-z0-9_]{3,16}", Pattern.CASE_INSENSITIVE);
     public final static Pattern YES_NO_REGEX_PATERN = Pattern.compile("[yn]", Pattern.CASE_INSENSITIVE);
     public final static Pattern NUMBER_COMPARE_INPUT_REGEX_PATERN = Pattern.compile("[hes]", Pattern.CASE_INSENSITIVE);;
 
@@ -32,8 +31,7 @@ public class PlayerInput {
      * 
      * @return Valid user's input.
      */
-    public static int getInputInt(String title, String inputPrompt, String wrongInputMessage, int min, int max,
-            boolean hideInput) {
+    public static int getInputInt(String title, String inputPrompt, String wrongInputMessage, int min, int max, boolean hideInput) {
         int result = 0;
 
         clearScreen();
@@ -79,8 +77,7 @@ public class PlayerInput {
      *                          be considered valid.
      * @return The method is returning a String value.
      */
-    public static String getInputString(String title, String inputPrompt, String wrongInputMessage, Pattern pattern,
-            boolean hideInput) {
+    public static String getInputString(String title, String inputPrompt, String wrongInputMessage, Pattern pattern, boolean hideInput) {
         String result = "";
 
         clearScreen();

@@ -30,8 +30,7 @@ public class Computer extends Player {
      */
     @Override
     public void setNumber(int min, int max, boolean hideInput) {
-        Random rnd = new Random();
-        number = rnd.nextInt(min, max + 1);
+        number = rand.nextInt(min, max + 1);
     }
 
     /**

@@ -16,8 +16,7 @@ public class Lobby {
     private int maxRange;
 
     // Prevent from using default constructor
-    private Lobby() {
-    }
+    private Lobby() { }
 
     public Lobby(Player playerChoosingNumber, Player playerGuessingNumber, int minRange, int maxRange) {
         this.playerChoosingNumber = playerChoosingNumber;
@@ -49,16 +48,18 @@ public class Lobby {
     public ArrayList<Integer> play(GameType gameType) {
         ArrayList<Integer> tries = new ArrayList<>(Collections.nCopies(guessingPlayers.size(), 0));
 
+        boolean isTournament = gameType == GameType.TOURNAMENT;
+
         // Singleplayer
-        if (gameType == GameType.SINGLEPLAYER) {
-            playerChoosingNumber.setNumber(minRange, maxRange, false);
+        if (gameType == GameType.SINGLEPLAYER || isTournament) {
+            playerChoosingNumber.setNumber(minRange, maxRange, isTournament);
             Player guessingPlayer = guessingPlayers.get(0);
 
             int result = -3;
             do {
                 tries.set(0, tries.get(0) + 1);
 
-                result = guessingPlayer.guessNumber(playerChoosingNumber, minRange, maxRange, false);
+                result = guessingPlayer.guessNumber(playerChoosingNumber, minRange, maxRange, isTournament);
 
                 if (result == -2) {
                     System.out.println(playerChoosingNumber.nickname + " cheated! Game is invalidated!");
@@ -66,7 +67,11 @@ public class Lobby {
                     return null;
                 }
 
-                if (playerChoosingNumber instanceof Computer) {
+                if (isTournament) {
+                    result = playerChoosingNumber.compareNumber(result, true);
+                }
+
+                if (guessingPlayer instanceof Player) {
                     if (result == 1) {
                         System.out.println("Too high! Try again...\n");
                         PlayerInput.pressEnterToContinue();
@@ -79,7 +84,8 @@ public class Lobby {
 
             System.out.println("Correct! Congratulations!\n");
             PlayerInput.pressEnterToContinue();
-        } else { // Multiplayer
+
+        } else  if (gameType == GameType.MULTIPLAYER) { 
             int round = 1;
             ArrayList<Integer> numbers = new ArrayList<>(Collections.nCopies(guessingPlayers.size(), 0));
             ArrayList<Boolean> doesPlayerGuessedList = new ArrayList<>(Collections.nCopies(guessingPlayers.size(), false));
